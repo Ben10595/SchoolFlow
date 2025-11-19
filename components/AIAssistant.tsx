@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Homework, Exam, Priority } from '../types';
-import { Sparkles, Send, X, Bot, ChevronRight, Book, GraduationCap, Smile, Zap } from 'lucide-react';
+import { Sparkles, Send, X, Book, GraduationCap, Zap } from 'lucide-react';
 
 interface AIAssistantProps {
   onAddHomework: (hw: Homework) => void;

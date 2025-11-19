@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { GlassCard } from './UI/GlassCard';
 import { Homework, Priority } from '../types';
-import { Trash2, Check, Plus, Filter, AlertCircle, Book, Calculator, Beaker, Globe, PenTool, Music } from 'lucide-react';
+import { Trash2, Check, Plus, AlertCircle, Book, Calculator, Beaker, Globe, PenTool, Music } from 'lucide-react';
 
 interface HomeworkViewProps {
   homework: Homework[];
