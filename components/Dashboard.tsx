@@ -16,10 +16,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ homework, exams, studySess
   const pendingHomework = homework.filter(h => !h.completed).length;
   const completedHomework = homework.filter(h => h.completed).length;
   
-  const nextExam = exams
+  // 1. Alle Prüfungen berechnen
+  const processedExams = exams
     .map(e => ({ ...e, daysLeft: Math.ceil((new Date(e.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }))
     .filter(e => e.daysLeft >= 0)
-    .sort((a, b) => a.daysLeft - b.daysLeft)[0];
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+  // 2. Nur die Prüfungen nehmen, die am allernächsten Tag stattfinden (Gruppierung)
+  const nextExams = processedExams.length > 0 
+    ? processedExams.filter(e => e.daysLeft === processedExams[0].daysLeft)
+    : [];
+
+  const primaryExam = nextExams[0]; // Für Datum/Tage Anzeige
   
   const totalStudy = studySessions.length;
 
@@ -92,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ homework, exams, studySess
              </div>
         </GlassCard>
 
-        {/* PRIMARY CARD 2: Exams */}
+        {/* PRIMARY CARD 2: Exams - UPDATED LOGIC FOR GROUPING */}
         <GlassCard 
             onClick={() => setView('exams')} 
             variant="primary"
@@ -108,16 +116,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ homework, exams, studySess
             </div>
 
             <div className="mt-6">
-                 {nextExam ? (
+                 {nextExams.length > 0 ? (
                      <>
                         <div className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight mb-1">
-                            {nextExam.daysLeft === 1 ? 'Morgen' : nextExam.daysLeft === 0 ? 'Heute' : `In ${nextExam.daysLeft} Tagen`}
+                            {primaryExam.daysLeft === 1 ? 'Morgen' : primaryExam.daysLeft === 0 ? 'Heute' : `In ${primaryExam.daysLeft} Tagen`}
                         </div>
-                        <div className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                             {nextExam.subject}
+                        {/* Hier werden die Fächer verbunden: Geo & Deutsch */}
+                        <div className="text-sm font-medium text-purple-600 dark:text-purple-400 truncate">
+                             {nextExams.map(e => e.subject).join(' & ')}
                         </div>
                         <div className="text-xs text-slate-500 dark:text-gray-500 mt-1 truncate">
-                             {nextExam.topic}
+                             {nextExams.map(e => e.topic).filter(Boolean).join(', ') || 'Mehrere Themen'}
+                        </div>
+                        <div className="text-xs text-slate-400 dark:text-gray-600 mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
+                            <CalendarDays size={12} />
+                            {new Date(primaryExam.date).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' })}
                         </div>
                      </>
                  ) : (
@@ -129,21 +142,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ homework, exams, studySess
             </div>
         </GlassCard>
 
-        {/* SECONDARY CARD: Quote */}
+        {/* SECONDARY CARD: Quote - UPDATED DESIGN */}
         <GlassCard 
             variant="secondary"
             noHover
-            className="md:col-span-7 p-6 flex flex-col justify-center relative overflow-hidden"
+            className="md:col-span-7 p-8 flex flex-col justify-center relative overflow-hidden"
         >
-            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-400 to-purple-500"></div>
-            <div className="flex items-center gap-2 mb-3">
-                <Quote size={16} className="text-yellow-500 dark:text-yellow-400" />
-                <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Zitat des Tages</span>
+            <div className="flex gap-5 h-full items-center">
+                <div className="w-1.5 h-24 bg-gradient-to-b from-blue-400 to-purple-500 rounded-full shrink-0 opacity-80"></div>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Quote size={16} className="text-yellow-500 dark:text-yellow-400" />
+                        <span className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Zitat des Tages</span>
+                    </div>
+                    <p className="text-lg text-slate-700 dark:text-gray-200 leading-relaxed font-medium italic">
+                        "Nicht weil es schwer ist, wagen wir es nicht, sondern weil wir es nicht wagen, ist es schwer."
+                    </p>
+                    <span className="block mt-3 text-sm text-slate-500 dark:text-gray-500 font-medium">— Seneca</span>
+                </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed font-medium italic">
-                "Nicht weil es schwer ist, wagen wir es nicht, sondern weil wir es nicht wagen, ist es schwer."
-                <span className="block mt-2 text-xs not-italic text-slate-400 dark:text-gray-500">— Seneca</span>
-            </p>
         </GlassCard>
 
       </div>

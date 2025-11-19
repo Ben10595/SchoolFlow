@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Exam } from '../types';
-import { Plus, Trash2, Calendar, X } from 'lucide-react';
+import { Plus, Trash2, Calendar, X, Pencil } from 'lucide-react';
 import { GlassCard } from './UI/GlassCard';
 
 interface ExamViewProps {
@@ -10,6 +10,11 @@ interface ExamViewProps {
 
 export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
   const [showForm, setShowForm] = useState(false);
+  
+  // Edit State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Form State
   const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
   const [date, setDate] = useState('');
@@ -18,11 +23,38 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
     e.preventDefault();
     if (!subject || !date) return;
 
-    setExams([...exams, { id: Date.now().toString(), subject, topic, date }]);
+    if (editingId) {
+        // Update
+        const updatedExams = exams.map(ex => 
+            ex.id === editingId 
+            ? { ...ex, subject, topic, date } 
+            : ex
+        );
+        setExams(updatedExams);
+        setEditingId(null);
+    } else {
+        // Create
+        setExams([...exams, { id: Date.now().toString(), subject, topic, date }]);
+    }
+
     setSubject('');
     setTopic('');
     setDate('');
     setShowForm(false);
+  };
+
+  const startEditing = (exam: Exam) => {
+      setSubject(exam.subject);
+      setTopic(exam.topic);
+      setDate(exam.date);
+      setEditingId(exam.id);
+      setShowForm(true);
+  };
+
+  const cancelForm = () => {
+      setShowForm(false);
+      setEditingId(null);
+      setSubject(''); setTopic(''); setDate('');
   };
 
   const deleteExam = (id: string) => {
@@ -44,7 +76,7 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
             <p className="text-sm text-gray-400 mt-1">Anstehende Tests und Klausuren.</p>
         </div>
         <button 
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => { setEditingId(null); setSubject(''); setTopic(''); setDate(''); setShowForm(!showForm); }}
             className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-purple-600/20"
             >
             <Plus size={16} />
@@ -56,8 +88,10 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
         <div className="mb-8 animate-fade-in">
              <div className="bg-[#161a24] p-6 rounded-xl border border-white/10 shadow-2xl">
                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Neue Prüfung</h3>
-                    <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white"><X size={16}/></button>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                        {editingId ? 'Prüfung bearbeiten' : 'Neue Prüfung'}
+                    </h3>
+                    <button onClick={cancelForm} className="text-gray-500 hover:text-white"><X size={16}/></button>
                 </div>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div className="space-y-1">
@@ -73,7 +107,9 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
                         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#0f0f17] border border-white/10 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors" required />
                     </div>
                     <div className="md:col-span-3 flex justify-end pt-2">
-                        <button type="submit" className="px-8 py-2.5 bg-purple-600 text-white rounded-lg font-bold text-sm hover:bg-purple-500 transition-colors">Speichern</button>
+                        <button type="submit" className="px-8 py-2.5 bg-purple-600 text-white rounded-lg font-bold text-sm hover:bg-purple-500 transition-colors">
+                            {editingId ? 'Aktualisieren' : 'Speichern'}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -100,7 +136,23 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
                       <div className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm border ${isUrgent ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/20'}`}>
                           {days === 0 ? 'Heute' : days === 1 ? 'Morgen' : `Noch ${days} Tage`}
                       </div>
-                      <button onClick={() => deleteExam(exam.id)} className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+                      
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => startEditing(exam)}
+                            className="text-gray-600 hover:text-purple-400 p-1 transition-colors"
+                            title="Bearbeiten"
+                          >
+                              <Pencil size={16} />
+                          </button>
+                          <button 
+                            onClick={() => deleteExam(exam.id)} 
+                            className="text-gray-600 hover:text-red-400 p-1 transition-colors"
+                            title="Löschen"
+                          >
+                              <Trash2 size={16} />
+                          </button>
+                      </div>
                   </div>
                   
                   <div className="mt-4">
