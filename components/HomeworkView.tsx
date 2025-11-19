@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Homework, Priority } from '../types';
-import { Trash2, Plus, Check, BookOpen, X } from 'lucide-react';
+import { Trash2, Plus, Check, X } from 'lucide-react';
 
 interface HomeworkViewProps {
   homework: Homework[];
@@ -14,7 +14,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({ homework, setHomewor
   const [subject, setSubject] = useState('');
   const [desc, setDesc] = useState('');
   const [date, setDate] = useState('');
-  const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
+  const [priority] = useState<Priority>(Priority.MEDIUM);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
