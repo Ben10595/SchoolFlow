@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Homework, Exam, Priority } from '../types';
-import { Sparkles, Send, X, Book, GraduationCap, Zap } from 'lucide-react';
+import { Sparkles, Send, X, Book, GraduationCap, Zap, AlertTriangle } from 'lucide-react';
 
 interface AIAssistantProps {
   onAddHomework: (hw: Homework) => void;
@@ -40,8 +40,21 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onAddHomework, onAddEx
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
 
+    // Safe API Key Access
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      setTimeout(() => {
+          setMessages(prev => [...prev, { 
+              role: 'ai', 
+              text: '⚠️ Kein API-Key gefunden! Wenn du das auf GitHub testest: Die KI funktioniert nur, wenn du das Repo lokal klonst und eine .env Datei mit deinem Key anlegst.' 
+          }]);
+          setLoading(false);
+      }, 500);
+      return;
+    }
+
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: apiKey });
       const today = new Date().toISOString().split('T')[0];
       const dayName = new Date().toLocaleDateString('de-DE', { weekday: 'long' });
 
@@ -97,7 +110,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onAddHomework, onAddEx
 
     } catch (error) {
       console.error("AI Error:", error);
-      setMessages(prev => [...prev, { role: 'ai', text: 'Ups, da ist was schiefgelaufen. 🤖 Versuch es nochmal.' }]);
+      setMessages(prev => [...prev, { role: 'ai', text: 'Ups, da ist was schiefgelaufen. 🤖 Überprüfe deinen API Key oder die Verbindung.' }]);
     } finally {
       setLoading(false);
     }

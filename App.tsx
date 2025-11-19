@@ -42,7 +42,7 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  // 1. Auth Listener (Only handles login state)
+  // 1. Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -51,9 +51,8 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // 2. Data Sync Listener (Depends on User)
+  // 2. Data Sync Listener
   useEffect(() => {
-    // Wenn kein User eingeloggt ist, leere Daten (oder lade aus LocalStorage wenn gewünscht, aber hier clean slate)
     if (!user) {
       setHomework([]);
       setExams([]);
@@ -61,19 +60,15 @@ const App: React.FC = () => {
       return;
     }
 
-    // Firestore Live Reference
     const docRef = doc(db, "users", user.uid);
 
-    // Realtime Listener
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Update State sofort wenn sich in der Cloud was ändert
         setHomework(data.homework || []);
         setExams(data.exams || []);
         setSessions(data.sessions || []);
       } else {
-        // Wenn Profil noch nicht existiert, erstelle es
         setDoc(docRef, {
           homework: [],
           exams: [],
@@ -84,18 +79,15 @@ const App: React.FC = () => {
         console.error("Firestore Sync Error:", error);
     });
 
-    // Cleanup wenn User sich ausloggt
     return () => unsubscribe();
   }, [user]);
 
-  // Helper to save data to Cloud (Optimistic UI + Sync)
+  // Helper to save data
   const saveData = (type: 'homework' | 'exams' | 'sessions', data: any) => {
-    // 1. Sofort anzeigen (schnell)
     if (type === 'homework') setHomework(data);
     if (type === 'exams') setExams(data);
     if (type === 'sessions') setSessions(data);
 
-    // 2. In Cloud speichern (dann triggert onSnapshot nochmal, was okay ist)
     if (user) {
       const docRef = doc(db, "users", user.uid);
       setDoc(docRef, { [type]: data }, { merge: true });
@@ -135,7 +127,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Loading State
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#050b14] flex items-center justify-center text-white">
@@ -144,7 +135,6 @@ const App: React.FC = () => {
     );
   }
 
-  // Not Logged In -> Show Landing Page
   if (!user) {
     return (
       <>
@@ -154,19 +144,18 @@ const App: React.FC = () => {
     );
   }
 
-  // Logged In -> Show App
   return (
     <div className={`min-h-screen w-full flex transition-colors duration-1000 ${
       theme === 'dark' 
         ? 'bg-[#050b14]' 
         : 'bg-[#f0f2f5]' 
     }`}>
-      {/* Background */}
+      {/* Background - Enhanced Opacity for VisionOS Depth */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay z-10" />
-        <div className={`absolute top-[-20%] left-[-10%] w-[90vw] h-[90vw] rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob ${theme === 'dark' ? 'bg-brand-purple' : 'bg-purple-300'}`}></div>
-        <div className={`absolute top-[10%] right-[-10%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[100px] opacity-20 animate-blob animation-delay-2000 ${theme === 'dark' ? 'bg-brand-magenta' : 'bg-pink-300'}`}></div>
-        <div className={`absolute bottom-[-20%] left-[20%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[120px] opacity-25 animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-brand-blue' : 'bg-blue-300'}`}></div>
+        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay z-10" />
+        <div className={`absolute top-[-20%] left-[-10%] w-[90vw] h-[90vw] rounded-full mix-blend-screen filter blur-[120px] opacity-40 animate-blob ${theme === 'dark' ? 'bg-brand-purple' : 'bg-purple-300'}`}></div>
+        <div className={`absolute top-[10%] right-[-10%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-2000 ${theme === 'dark' ? 'bg-brand-magenta' : 'bg-pink-300'}`}></div>
+        <div className={`absolute bottom-[-20%] left-[20%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[120px] opacity-35 animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-brand-blue' : 'bg-blue-300'}`}></div>
       </div>
 
       <Navbar 
@@ -177,61 +166,63 @@ const App: React.FC = () => {
       />
 
       {/* Main Layout */}
-      <div className="flex-1 flex flex-col relative z-10 min-w-0 md:pl-[280px] transition-all duration-300">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0 md:pl-[300px] transition-all duration-300">
         
         {/* Desktop Top Bar */}
-        <div className="hidden md:flex px-10 py-4 justify-between items-center sticky top-0 z-20 pointer-events-none">
+        <div className="hidden md:flex px-10 py-6 justify-between items-center sticky top-0 z-20 pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto"></div>
           
-          <div className="flex items-center gap-4 pointer-events-auto">
-            <div className="px-4 py-1.5 rounded-full bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-md border border-white/20 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-5 pointer-events-auto">
+            <div className="px-5 py-2 rounded-full bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-3xl border border-white/20 text-sm font-bold text-slate-600 dark:text-slate-300 shadow-lg">
                 {new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
             </div>
             
             <button 
                 onClick={toggleTheme}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-md border border-white/20 hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-sm group"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-3xl border border-white/20 hover:bg-white/60 dark:hover:bg-white/10 transition-all shadow-lg group"
             >
                 {theme === 'dark' 
-                ? <Sun size={16} className="text-brand-gold group-hover:rotate-90 transition-transform" /> 
-                : <Moon size={16} className="text-brand-purple group-hover:-rotate-12 transition-transform" />}
+                ? <Sun size={18} className="text-brand-gold group-hover:rotate-90 transition-transform" /> 
+                : <Moon size={18} className="text-brand-purple group-hover:-rotate-12 transition-transform" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Top Bar */}
-        <div className="md:hidden px-6 py-4 flex justify-between items-center sticky top-0 z-20 backdrop-blur-xl bg-white/50 dark:bg-[#0f172a]/50 border-b border-white/10">
+        <div className="md:hidden px-6 py-5 flex justify-between items-center sticky top-0 z-20 backdrop-blur-2xl bg-white/70 dark:bg-[#0f172a]/70 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-tr from-brand-purple to-brand-magenta rounded-lg flex items-center justify-center shadow-lg">
-              <Sparkles size={16} className="text-white" />
+            <div className="w-9 h-9 bg-gradient-to-tr from-brand-purple to-brand-magenta rounded-xl flex items-center justify-center shadow-lg ring-1 ring-white/20">
+              <Sparkles size={18} className="text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-slate-800 dark:text-white">SchoolFlow</span>
+            <span className="font-extrabold text-xl tracking-tight text-slate-800 dark:text-white">SchoolFlow</span>
           </div>
           <button 
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/20 dark:border-white/10"
+              className="p-2.5 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-sm"
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
         </div>
 
         {/* Content */}
-        <main className="flex-1 px-5 md:px-10 pb-32 md:pb-4 overflow-y-auto no-scrollbar">
+        <main className="flex-1 px-5 md:px-12 pb-32 md:pb-8 overflow-y-auto no-scrollbar">
           <div className="max-w-[2000px] mx-auto w-full h-full">
             {renderView()}
           </div>
         </main>
       </div>
 
-      {/* Floating AI Button */}
+      {/* Floating AI Button - Vision Size Upgrade */}
       <div className="fixed bottom-24 right-6 md:bottom-20 md:right-10 z-40">
         <button
           onClick={() => setShowAI(true)}
-          className="group relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center transition-transform hover:scale-110 duration-300"
+          className="group relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all hover:scale-110 duration-500"
         >
-          <div className="absolute inset-0 bg-brand-purple rounded-full blur-xl opacity-40 animate-pulse group-hover:opacity-70 transition-opacity"></div>
-          <div className="relative w-full h-full bg-gradient-to-br from-brand-purple via-brand-magenta to-brand-purple text-white rounded-full shadow-2xl shadow-brand-purple/50 flex items-center justify-center border border-white/20">
-            <Sparkles size={24} className="animate-pulse-slow" />
+          <div className="absolute inset-0 bg-brand-purple rounded-full blur-2xl opacity-50 animate-pulse group-hover:opacity-80 transition-opacity"></div>
+          <div className="relative w-full h-full bg-gradient-to-br from-brand-purple via-brand-magenta to-brand-purple text-white rounded-full shadow-2xl shadow-brand-purple/60 flex items-center justify-center border border-white/30 overflow-hidden">
+            {/* Shine on Button */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <Sparkles size={32} className="animate-pulse-slow relative z-10" />
           </div>
         </button>
       </div>
