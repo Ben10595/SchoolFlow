@@ -1,0 +1,5 @@
+{
+  "name": "SchoolFlow",
+  "description": "Ein moderner, lokaler Schulplaner für Hausaufgaben, Prüfungen und Lernzeiten mit Glassmorphism-Design.",
+  "requestFramePermissions": []
+}
