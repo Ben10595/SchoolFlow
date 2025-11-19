@@ -30,4 +30,4 @@ export interface StudySession {
 
 export type ViewState = 'dashboard' | 'homework' | 'exams' | 'study';
 
-export type Theme = 'light' | 'dark';
+export type Theme = 'dark' | 'light' | 'pink';

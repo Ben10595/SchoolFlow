@@ -1,17 +1,19 @@
-
 import React from 'react';
 import { GlassCard } from './UI/GlassCard';
-import { X, LogOut, User, Mail, Shield } from 'lucide-react';
+import { X, LogOut, User, Mail, Shield, Moon, Sun, Palette } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, User as FirebaseUser } from 'firebase/auth';
+import { Theme } from '../types';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: FirebaseUser | null;
+  currentTheme: Theme;
+  setTheme: (theme: Theme) => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, currentTheme, setTheme }) => {
   if (!isOpen || !user) return null;
 
   const handleLogout = async () => {
@@ -25,7 +27,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#050b14]/60 backdrop-blur-sm animate-fade-in p-4">
-      <GlassCard className="w-full max-w-md p-0 overflow-hidden relative" noHover>
+      <GlassCard className="w-full max-w-md p-0 overflow-hidden relative bg-white dark:bg-[#161a24]" noHover>
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-brand-purple via-brand-magenta to-brand-purple opacity-20 pointer-events-none" />
         
         <button 
@@ -52,6 +54,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
         </div>
 
         <div className="px-6 pb-8 space-y-4">
+            
+            {/* Theme Switcher */}
+            <div className="group">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Design</label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                    <button 
+                        onClick={() => setTheme('dark')}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${currentTheme === 'dark' ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                    >
+                        <Moon size={18} />
+                        <span className="text-xs font-medium">Dark</span>
+                    </button>
+                    <button 
+                        onClick={() => setTheme('light')}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${currentTheme === 'light' ? 'bg-blue-100 border-blue-200 text-blue-600' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}
+                    >
+                        <Sun size={18} />
+                        <span className="text-xs font-medium">Light</span>
+                    </button>
+                    <button 
+                        onClick={() => setTheme('pink')}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${currentTheme === 'pink' ? 'bg-pink-100 border-pink-200 text-pink-600' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-100'}`}
+                    >
+                        <Palette size={18} />
+                        <span className="text-xs font-medium">Pink</span>
+                    </button>
+                </div>
+            </div>
+
             <div className="group">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Account E-Mail</label>
                 <div className="flex items-center gap-3 p-4 mt-1 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">

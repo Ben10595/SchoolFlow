@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { GlassCard } from './UI/GlassCard';
 import { Exam } from '../types';
-import { Plus, Trash2, Calendar, BookOpen, Clock } from 'lucide-react';
+import { Plus, Trash2, Calendar, X } from 'lucide-react';
+import { GlassCard } from './UI/GlassCard';
 
 interface ExamViewProps {
   exams: Exam[];
@@ -18,14 +18,7 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
     e.preventDefault();
     if (!subject || !date) return;
 
-    const newExam: Exam = {
-      id: Date.now().toString(),
-      subject,
-      topic,
-      date
-    };
-
-    setExams([...exams, newExam]);
+    setExams([...exams, { id: Date.now().toString(), subject, topic, date }]);
     setSubject('');
     setTopic('');
     setDate('');
@@ -44,139 +37,88 @@ export const ExamView: React.FC<ExamViewProps> = ({ exams, setExams }) => {
   const sortedExams = [...exams].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+    <div className="animate-fade-in max-w-screen-xl mx-auto">
+       <header className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
         <div>
-             <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">Prüfungen</h2>
-             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Verpasse keine Deadline.</p>
+            <h2 className="text-3xl font-semibold text-white tracking-tight">Prüfungen</h2>
+            <p className="text-sm text-gray-400 mt-1">Anstehende Tests und Klausuren.</p>
         </div>
         <button 
-          onClick={() => setShowForm(!showForm)}
-          className="bg-brand-magenta hover:bg-brand-magenta/90 text-white p-3 rounded-xl shadow-lg shadow-brand-magenta/25 transition-all active:scale-95"
-        >
-          <Plus size={20} />
+            onClick={() => setShowForm(!showForm)}
+            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-purple-600/20"
+            >
+            <Plus size={16} />
+            <span>Prüfung</span>
         </button>
-      </div>
+      </header>
 
       {showForm && (
-        <div className="mb-8 animate-fade-in-down">
-            <GlassCard className="p-8 max-w-3xl mx-auto ring-4 ring-brand-magenta/10">
-                <h3 className="text-lg font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
-                     <div className="p-2 bg-brand-magenta/10 rounded-lg">
-                        <Plus size={18} className="text-brand-magenta"/>
-                     </div>
-                     Neue Prüfung eintragen
-                </h3>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="group">
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within:text-brand-magenta transition-colors">Fach</label>
-                            <input 
-                                type="text" 
-                                value={subject} 
-                                onChange={(e) => setSubject(e.target.value)}
-                                className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-magenta/50 text-slate-800 dark:text-white transition-all"
-                                placeholder="z.B. Englisch"
-                                required
-                            />
-                        </div>
-                        <div className="group">
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within:text-brand-magenta transition-colors">Datum</label>
-                            <input 
-                                type="date" 
-                                value={date} 
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-magenta/50 text-slate-800 dark:text-white transition-all"
-                                required
-                            />
-                        </div>
+        <div className="mb-8 animate-fade-in">
+             <div className="bg-[#161a24] p-6 rounded-xl border border-white/10 shadow-2xl">
+                 <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Neue Prüfung</h3>
+                    <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white"><X size={16}/></button>
+                </div>
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium ml-1">Fach</label>
+                        <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="z.B. Englisch" className="w-full p-3 rounded-lg bg-[#0f0f17] border border-white/10 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors" required />
                     </div>
-                    <div className="group">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within:text-brand-magenta transition-colors">Thema</label>
-                        <input 
-                            type="text" 
-                            value={topic} 
-                            onChange={(e) => setTopic(e.target.value)}
-                            className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-magenta/50 text-slate-800 dark:text-white transition-all"
-                            placeholder="Vokabeltest Unit 3"
-                        />
+                    <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium ml-1">Thema</label>
+                        <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. Vokabeln Unit 1" className="w-full p-3 rounded-lg bg-[#0f0f17] border border-white/10 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors" />
                     </div>
-                    <div className="pt-4 flex gap-3">
-                         <button type="button" onClick={() => setShowForm(false)} className="px-6 py-4 rounded-xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
-                            Abbrechen
-                        </button>
-                        <button type="submit" className="flex-1 bg-brand-magenta text-white font-bold py-4 rounded-xl shadow-xl shadow-brand-magenta/30 hover:opacity-90 hover:scale-[1.01] active:scale-95 transition-all">
-                            Prüfung speichern
-                        </button>
+                    <div className="space-y-1">
+                        <label className="text-xs text-gray-500 font-medium ml-1">Datum</label>
+                        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#0f0f17] border border-white/10 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors" required />
+                    </div>
+                    <div className="md:col-span-3 flex justify-end pt-2">
+                        <button type="submit" className="px-8 py-2.5 bg-purple-600 text-white rounded-lg font-bold text-sm hover:bg-purple-500 transition-colors">Speichern</button>
                     </div>
                 </form>
-            </GlassCard>
+            </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
-        {sortedExams.length === 0 ? (
-           <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
-                <div className="w-24 h-24 bg-brand-magenta/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                    <Calendar size={40} className="text-brand-magenta/50" />
-                </div>
-                <p className="font-bold text-xl text-slate-600 dark:text-slate-300">Keine Prüfungen!</p>
-           </div>
-        ) : (
-          sortedExams.map((exam, idx) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {exams.length === 0 && (
+            <div className="md:col-span-3 text-center py-20 border border-dashed border-white/5 rounded-xl">
+                <p className="text-gray-500 text-sm">Keine Prüfungen eingetragen.</p>
+            </div>
+        )}
+        {sortedExams.map((exam) => {
             const days = getDaysLeft(exam.date);
-            const isUrgent = days <= 3;
+            const isUrgent = days <= 3 && days >= 0;
             
             return (
               <GlassCard 
                 key={exam.id} 
-                delay={idx * 50}
-                className={`p-0 flex flex-col h-full overflow-hidden group ${isUrgent ? 'ring-2 ring-brand-magenta' : ''}`}
+                variant={isUrgent ? 'primary' : 'secondary'}
+                className={`p-6 flex flex-col justify-between min-h-[180px] group ${isUrgent ? 'border-purple-500/30' : ''}`}
               >
-                {/* Decorative Top Gradient */}
-                <div className={`h-1.5 w-full bg-gradient-to-r ${isUrgent ? 'from-red-500 to-brand-magenta' : 'from-brand-blue to-brand-neon'}`} />
-                
-                <div className="p-6 flex flex-col h-full relative">
-                    {/* Giant Background Number */}
-                    <div className="absolute -right-6 -top-2 text-9xl font-black text-slate-900/5 dark:text-white/5 pointer-events-none select-none z-0">
-                        {days}
-                    </div>
-
-                    <div className="flex justify-between items-start mb-8 relative z-10">
-                        <div className={`p-2.5 rounded-xl shadow-sm ${isUrgent ? 'bg-brand-magenta text-white' : 'bg-white dark:bg-white/10 text-slate-600 dark:text-white'}`}>
-                            <BookOpen size={20} />
-                        </div>
-                         <button 
-                            onClick={() => deleteExam(exam.id)}
-                            className="text-slate-300 hover:text-brand-magenta transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                            <Trash2 size={18} />
-                        </button>
-                    </div>
-
-                    <div className="relative z-10">
-                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white truncate tracking-tight">{exam.subject}</h3>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2 leading-relaxed line-clamp-2 h-10">{exam.topic}</p>
-                    </div>
-
-                    <div className="mt-auto pt-6 relative z-10">
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 dark:bg-black/20 border border-slate-100 dark:border-white/5">
-                            <div className="flex items-center gap-2">
-                                <Clock size={14} className={isUrgent ? 'text-brand-magenta' : 'text-slate-400'} />
-                                <span className={`text-xs font-bold uppercase tracking-wider ${isUrgent ? 'text-brand-magenta' : 'text-slate-500 dark:text-slate-400'}`}>
-                                    {days === 0 ? 'Heute' : days === 1 ? 'Morgen' : `In ${days} Tagen`}
-                                </span>
-                            </div>
-                            <span className="text-xs font-mono font-medium text-slate-400">
-                                {new Date(exam.date).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit'})}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                  <div className="flex justify-between items-start">
+                      <div className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm border ${isUrgent ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/20'}`}>
+                          {days === 0 ? 'Heute' : days === 1 ? 'Morgen' : `Noch ${days} Tage`}
+                      </div>
+                      <button onClick={() => deleteExam(exam.id)} className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+                  </div>
+                  
+                  <div className="mt-4">
+                      <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-bold text-white tracking-tight">{days}</span>
+                          <span className="text-xs text-gray-500 uppercase font-medium">Tage</span>
+                      </div>
+                      <h3 className="text-lg font-medium text-white mt-2">{exam.subject}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">{exam.topic || 'Kein Thema'}</p>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-gray-400">
+                      <Calendar size={12} />
+                      {new Date(exam.date).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' })}
+                  </div>
               </GlassCard>
             );
-          })
-        )}
+        })}
       </div>
     </div>
   );

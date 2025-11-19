@@ -1,4 +1,3 @@
-
 {
   "name": "schoolflow-os",
   "private": true,
@@ -10,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^1.30.0",
     "firebase": "^10.8.0",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
