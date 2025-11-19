@@ -2,24 +2,12 @@
 import React, { useState } from 'react';
 import { GlassCard } from './UI/GlassCard';
 import { Homework, Priority } from '../types';
-import { Trash2, Check, Plus, AlertCircle, Book, Calculator, Beaker, Globe, PenTool, Music } from 'lucide-react';
+import { Trash2, Plus, Book, Calculator, Beaker, Globe, PenTool, Music, CheckCircle } from 'lucide-react';
 
 interface HomeworkViewProps {
   homework: Homework[];
   setHomework: (hw: Homework[]) => void;
 }
-
-// Helper to get icon based on subject
-const getSubjectIcon = (subject: string) => {
-  const s = subject.toLowerCase();
-  if (s.includes('mathe')) return Calculator;
-  if (s.includes('deutsch') || s.includes('englisch')) return Book;
-  if (s.includes('bio') || s.includes('chemie') || s.includes('physik')) return Beaker;
-  if (s.includes('geo') || s.includes('geschichte')) return Globe;
-  if (s.includes('kunst')) return PenTool;
-  if (s.includes('musik')) return Music;
-  return Book;
-};
 
 export const HomeworkView: React.FC<HomeworkViewProps> = ({ homework, setHomework }) => {
   const [showForm, setShowForm] = useState(false);
@@ -70,6 +58,18 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({ homework, setHomewor
     }
     return 0;
   });
+
+  // Helper for Icons
+  const getSubjectIcon = (subject: string) => {
+    const s = subject.toLowerCase();
+    if (s.includes('mathe')) return Calculator;
+    if (s.includes('deutsch') || s.includes('englisch')) return Book;
+    if (s.includes('bio') || s.includes('chemie') || s.includes('physik')) return Beaker;
+    if (s.includes('geo') || s.includes('geschichte')) return Globe;
+    if (s.includes('kunst')) return PenTool;
+    if (s.includes('musik')) return Music;
+    return Book;
+  };
 
   return (
     <div className="animate-fade-in">
@@ -182,64 +182,82 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({ homework, setHomewor
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
         {sortedHomework.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
-            <div className="w-24 h-24 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                <Check size={40} className="text-slate-300 dark:text-slate-600" />
-            </div>
-            <p className="font-bold text-xl text-slate-600 dark:text-slate-300">Alles erledigt!</p>
-            <p className="text-sm opacity-60 mt-2">Gönn dir eine Pause.</p>
+             <div className="w-24 h-24 bg-brand-purple/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <Book size={40} className="text-brand-purple/50" />
+             </div>
+             <p className="font-bold text-xl text-slate-600 dark:text-slate-300">Keine Aufgaben!</p>
+             <p className="text-sm opacity-60 mt-2">Du bist auf dem Laufenden.</p>
           </div>
         ) : (
-          sortedHomework.map((hw, idx) => {
-            const SubjectIcon = getSubjectIcon(hw.subject);
-            return (
-            <GlassCard 
-                delay={idx * 50} // Stagger effect
-                key={hw.id} 
-                className={`flex flex-col group h-full ${hw.completed ? 'opacity-60 grayscale-[0.5]' : ''} ${hw.priority === Priority.HIGH ? 'border-l-4 border-l-red-500' : hw.priority === Priority.MEDIUM ? 'border-l-4 border-l-amber-500' : ''}`}
-            >
-              <div className="p-6 flex-1 flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                        <SubjectIcon size={20} />
-                    </div>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); deleteHomework(hw.id); }}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-300 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                  </div>
+          sortedHomework.map((h, idx) => {
+            const SubjectIcon = getSubjectIcon(h.subject);
+            const isUrgent = new Date(h.dueDate).getTime() - new Date().getTime() < 1000 * 60 * 60 * 24 * 2 && !h.completed;
 
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <h3 className={`font-bold text-lg text-slate-800 dark:text-white leading-tight ${hw.completed ? 'line-through decoration-2 decoration-slate-300' : ''}`}>
-                            {hw.subject}
+            return (
+                <GlassCard 
+                    key={h.id} 
+                    delay={idx * 50}
+                    className={`p-0 flex flex-col h-full group ${h.completed ? 'opacity-60 grayscale-[0.5]' : ''} ${isUrgent ? 'ring-2 ring-red-500/50' : ''}`}
+                >
+                     {/* Status Indicator Line */}
+                    <div className={`h-1.5 w-full bg-gradient-to-r ${h.completed ? 'from-green-400 to-green-600' : h.priority === Priority.HIGH ? 'from-red-500 to-red-600' : h.priority === Priority.MEDIUM ? 'from-amber-400 to-amber-600' : 'from-blue-400 to-blue-600'}`} />
+
+                    <div className="p-6 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${h.completed ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>
+                                    <SubjectIcon size={20} />
+                                </div>
+                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${
+                                    h.priority === Priority.HIGH ? 'bg-red-50 dark:bg-red-900/20 text-red-500 border-red-200 dark:border-red-900/30' :
+                                    h.priority === Priority.MEDIUM ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-500 border-amber-200 dark:border-amber-900/30' :
+                                    'bg-blue-50 dark:bg-blue-900/20 text-blue-500 border-blue-200 dark:border-blue-900/30'
+                                }`}>
+                                    {h.priority}
+                                </span>
+                            </div>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); deleteHomework(h.id); }}
+                                className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+
+                        <h3 className={`text-xl font-bold text-slate-800 dark:text-white mb-2 ${h.completed ? 'line-through text-slate-400' : ''}`}>
+                            {h.subject}
                         </h3>
-                         {hw.priority === Priority.HIGH && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                        
+                        {h.description && (
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">
+                                {h.description}
+                            </p>
+                        )}
+
+                        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-4">
+                             <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fällig</span>
+                                <span className={`text-xs font-bold ${isUrgent ? 'text-red-500' : 'text-slate-600 dark:text-slate-300'}`}>
+                                    {new Date(h.dueDate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                                </span>
+                             </div>
+                             
+                             <button 
+                                onClick={() => toggleComplete(h.id)}
+                                className={`
+                                    w-10 h-10 rounded-full flex items-center justify-center transition-all
+                                    ${h.completed 
+                                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/30 scale-110' 
+                                        : 'bg-slate-100 dark:bg-white/10 text-slate-400 hover:bg-brand-purple hover:text-white'}
+                                `}
+                             >
+                                <CheckCircle size={20} className={h.completed ? 'fill-current' : ''} />
+                             </button>
+                        </div>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 font-medium">{hw.description}</p>
-                  </div>
-              </div>
-              
-              <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">
-                    <AlertCircle size={12} className={new Date(hw.dueDate) < new Date() ? 'text-red-500' : 'text-slate-400'}/>
-                    {new Date(hw.dueDate).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
-                </div>
-                <button 
-                    onClick={() => toggleComplete(hw.id)}
-                    className={`
-                      w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 shadow-md
-                      ${hw.completed 
-                        ? 'bg-green-500 text-white shadow-green-500/30 scale-100' 
-                        : 'bg-white dark:bg-white/10 text-slate-300 hover:bg-brand-purple hover:text-white hover:scale-110'}
-                    `}
-                  >
-                    <Check size={16} strokeWidth={3} />
-                  </button>
-              </div>
-            </GlassCard>
-          )})
+                </GlassCard>
+            );
+          })
         )}
       </div>
     </div>

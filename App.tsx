@@ -42,53 +42,60 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Authentication & Data Sync Effect
+  // 1. Auth Listener (Only handles login state)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
-
-      if (currentUser) {
-        // Sync Firestore Logic
-        const docRef = doc(db, "users", currentUser.uid);
-        
-        // Realtime Listener
-        const unsubDoc = onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.homework) setHomework(data.homework);
-            if (data.exams) setExams(data.exams);
-            if (data.sessions) setSessions(data.sessions);
-          } else {
-            // Init new user data
-            setDoc(docRef, {
-              homework: [],
-              exams: [],
-              sessions: []
-            }, { merge: true });
-          }
-        });
-        
-        return () => unsubDoc();
-      } else {
-        // Clear data on logout
-        setHomework([]);
-        setExams([]);
-        setSessions([]);
-      }
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Helper to save data to Cloud
+  // 2. Data Sync Listener (Depends on User)
+  useEffect(() => {
+    // Wenn kein User eingeloggt ist, leere Daten (oder lade aus LocalStorage wenn gewünscht, aber hier clean slate)
+    if (!user) {
+      setHomework([]);
+      setExams([]);
+      setSessions([]);
+      return;
+    }
+
+    // Firestore Live Reference
+    const docRef = doc(db, "users", user.uid);
+
+    // Realtime Listener
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Update State sofort wenn sich in der Cloud was ändert
+        setHomework(data.homework || []);
+        setExams(data.exams || []);
+        setSessions(data.sessions || []);
+      } else {
+        // Wenn Profil noch nicht existiert, erstelle es
+        setDoc(docRef, {
+          homework: [],
+          exams: [],
+          sessions: []
+        }, { merge: true });
+      }
+    }, (error) => {
+        console.error("Firestore Sync Error:", error);
+    });
+
+    // Cleanup wenn User sich ausloggt
+    return () => unsubscribe();
+  }, [user]);
+
+  // Helper to save data to Cloud (Optimistic UI + Sync)
   const saveData = (type: 'homework' | 'exams' | 'sessions', data: any) => {
-    // Optimistic update
+    // 1. Sofort anzeigen (schnell)
     if (type === 'homework') setHomework(data);
     if (type === 'exams') setExams(data);
     if (type === 'sessions') setSessions(data);
 
-    // Sync to Firestore
+    // 2. In Cloud speichern (dann triggert onSnapshot nochmal, was okay ist)
     if (user) {
       const docRef = doc(db, "users", user.uid);
       setDoc(docRef, { [type]: data }, { merge: true });
